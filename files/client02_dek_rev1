@@ -1,0 +1,91 @@
+#include <Windows.h>
+#include <clocale>
+#include <fstream>
+#include <iostream>
+
+using namespace std;
+
+struct Student
+{
+	char name[25];
+	int marks[4];
+}A;
+
+struct Responce
+{
+	int status;
+	int debts;
+}resp;
+
+int main()
+{
+	setlocale(LC_ALL, "RUS");
+	const char* nameR = "E:/REQUEST_DEK.bin";
+	const char* nameA = "E:/ANSWER_DEK.bin";
+
+	ofstream file_REQ;
+	ifstream file_ANS;
+	long pred_size = 0;
+	int answer;
+
+	while (true)
+	{
+		cout << "\n----------------------------------------" << endl;
+		cout << "Введите Фамилию и 4 оценки через пробел:" << endl;
+
+		if (!(cin >> A.name >> A.marks[0] >> A.marks[1] >> A.marks[2] >> A.marks[3])) {
+			break;
+		}
+
+		file_ANS.open(nameA, ios::binary);
+		if (file_ANS.is_open()) {
+			file_ANS.seekg(0, ios::end);
+			pred_size = file_ANS.tellg();
+			file_ANS.close();
+		}
+		else {
+			pred_size = 0;
+		}
+
+		file_REQ.open(nameR, ios::binary | ios::app);
+		file_REQ.write((char*)&A, sizeof(A));
+		file_REQ.close();
+
+		file_ANS.open(nameA, ios::binary);
+		file_ANS.seekg(0, ios::end);
+
+		while (pred_size >= file_ANS.tellg() || file_ANS.tellg() == -1)
+		{
+			Sleep(100);
+			file_ANS.clear();
+			file_ANS.seekg(0, ios::end);
+		}
+
+		file_ANS.seekg(pred_size, ios::beg);
+		file_ANS.read((char*)&answer, sizeof(answer));
+		file_ANS.read((char*)&resp, sizeof(resp));
+		file_ANS.close();
+
+		if (resp.debts > 0) {
+			cout << "Внимание! У вас есть задолженности: " << resp.debts << " шт" << endl;
+		}
+		else {
+			switch (answer) {
+			case 0:
+				cout << "Результат деканата: Стипендия НЕ назначается." << endl;
+				break;
+			case 1:
+				cout << "Результат деканата: Назначена ОБЫЧНАЯ стипендия." << endl;
+				break;
+			case 2:
+				cout << "Результат деканата: Назначена ПОВЫШЕННАЯ стипендия!" << endl;
+				break;
+			default:
+				cout << "Ошибка: Неизвестный ответ сервера." << endl;
+				break;
+			}
+		}
+	}
+
+	return 0;
+}
